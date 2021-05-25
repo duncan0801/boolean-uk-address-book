@@ -6,6 +6,10 @@ const state = {
   selectedContact: null
 };
 
+function creatEl(tag) {
+  return document.createElement(tag)
+}
+
 /* [START] NO NEED TO EDIT */
 
 function getContacts() {
@@ -15,14 +19,21 @@ function getContacts() {
     })
     .then(function (data) {
       state.contacts = data;
+      
 
       renderContactsList();
     });
-}
+}// Will fetch data from the server then render in the list section
 
 function renderContactsList() {
+  let oldListEl = document.querySelector("ul.contacts-list")
+      console.log(oldListEl)
+      if(oldListEl) oldListEl.remove()
+
   const listEl = document.createElement("ul");
   listEl.className = "contacts-list";
+
+  
 
   for (let i = 0; i < state.contacts.length; i++) {
     const contact = state.contacts[i];
@@ -114,7 +125,13 @@ function renderContactListItem(contact) {
   editBtn.innerText = "Edit";
 
   editBtn.addEventListener("click", function () {
-    // [TODO] Write Code
+    /*
+    - the updated contact should be saved in the database
+        PATCH request with http://localhost:3000/contacts/${contact.id}
+    - the updated contact should be viewable in the UI
+    - the selected contact can also be deleted from the edit contact form
+    */
+    renderEditForm(contact)
   });
 
   listItemEl.append(editBtn);
@@ -122,11 +139,285 @@ function renderContactListItem(contact) {
   return listItemEl;
 }
 
+function renderEditForm(contact) {
+  let oldFormEl = document.querySelector("form")
+  if (oldFormEl) oldFormEl.remove()
+
+  let formEl = creatEl("form")
+  formEl.setAttribute("class", "form-stack light-shadow center contact-form")
+
+  let titleEl = creatEl("h2")
+  titleEl.innerText = "Edit Contact"
+
+  let firstNameInputLabelEl = creatEl("label")
+  firstNameInputLabelEl.setAttribute("for", "firstName")
+  firstNameInputLabelEl.innerText= "First Name:"
+  let firstNameInputEl = creatEl("input")
+  firstNameInputEl.setAttribute("id", "firstName")
+  firstNameInputEl.setAttribute("name", "firstName")
+  firstNameInputEl.setAttribute("type", "text")
+  firstNameInputEl.setAttribute("placeholder", contact.firstName)
+  
+  let lastNameInputLabelEl = creatEl("label")
+  lastNameInputLabelEl.setAttribute("for", "last-name-input")
+  lastNameInputLabelEl.innerText ="Last Name:"
+  let lastNameInputEl = creatEl("input")
+  lastNameInputEl.setAttribute("id", "lastName")
+  lastNameInputEl.setAttribute("name", "lastName")
+  lastNameInputEl.setAttribute("type", "text")
+  lastNameInputEl.setAttribute("placeholder", contact.lastName)
+
+  let cityInputLabelEl = creatEl("label")
+  cityInputLabelEl.setAttribute("for", "city")
+  cityInputLabelEl.innerText = "City:"
+  let cityInputEl = creatEl("input")
+  cityInputEl.setAttribute("id", "city")
+  cityInputEl.setAttribute("name", "city")
+  cityInputEl.setAttribute("type", "text")
+  cityInputEl.setAttribute("placeholder", contact.address.city)
+
+  let postCodeInputLabelEl = creatEl("label")
+  postCodeInputLabelEl.setAttribute("for", "postCode-input")
+  postCodeInputLabelEl.innerText = "Postcode:"
+  let postCodeInputEl = creatEl("input")
+  postCodeInputEl.setAttribute("id", "postCode")
+  postCodeInputEl.setAttribute("name", "postCode")
+  postCodeInputEl.setAttribute("type", "text")
+  postCodeInputEl.setAttribute("placeholder", contact.address.postCode)
+
+  let streetInputLabelEl = creatEl("label")
+  streetInputLabelEl.setAttribute("for", "street")
+  streetInputLabelEl.innerText = "Street:"
+  let streetInputEl = creatEl("input")
+  streetInputEl.setAttribute("id", "street")
+  streetInputEl.setAttribute("name", "street")
+  streetInputEl.setAttribute("type", "text")
+  streetInputEl.setAttribute("placeholder", contact.address.street)
+
+  let checkboxSectionEl = creatEl("div")
+  checkboxSectionEl.setAttribute("class", "checkboxSection")
+  let checkboxSectionInputEl = creatEl("input")
+  checkboxSectionInputEl.setAttribute("id", "blockCheckbox" )
+  checkboxSectionInputEl.setAttribute("name", "blockCheckbox")
+  checkboxSectionInputEl.setAttribute("type", "checkbox")
+  let checkboxSectionInputLabelEl = creatEl("label")
+  checkboxSectionInputLabelEl.setAttribute("for", "blockCheckbox")
+  checkboxSectionInputLabelEl.innerText = "Block"
+  if(contact.blockContact) {
+    checkboxSectionInputEl.checked = true
+    console.log("ISBLOCKED")
+  }
+
+  let actionSectionEl = creatEl("div")
+  actionSectionEl.setAttribute("class", "actionsSection")
+  let actionSectionButtonEl = creatEl("button")
+  actionSectionButtonEl.setAttribute("class", "button blue")
+  actionSectionButtonEl.setAttribute("type", "submit")
+  actionSectionButtonEl.innerText= "Save"
+
+  checkboxSectionEl.append(
+    checkboxSectionInputEl,
+    checkboxSectionInputLabelEl
+    )
+  actionSectionEl.append(actionSectionButtonEl)
+  formEl.append(
+    titleEl,
+    firstNameInputLabelEl,
+    firstNameInputEl,
+    lastNameInputLabelEl,
+    lastNameInputEl,
+    cityInputLabelEl,
+    cityInputEl,
+    postCodeInputLabelEl,
+    postCodeInputEl,
+    streetInputLabelEl,
+    streetInputEl,
+    checkboxSectionEl,
+    actionSectionEl
+    )
+    let viewSectionEl = document.querySelector(".view-section")
+    viewSectionEl.append(formEl)
+
+    formEl.addEventListener("submit", contactUpdateToServer
+    )
+}
+function contactUpdateToServer (event, contact) {
+  event.preventDefault()
+  let form = event.target
+  let update = {}
+
+  for (element of form) {
+    if(element.value) update.element = element.value
+  }
+  console.log(event)
+  fetch(`http://localhost:3000/contacts/${contact.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(update)
+  })
+}
+
+
+function renderContactForm() {
+
+  let formEl = creatEl("form")
+  formEl.setAttribute("class", "form-stack light-shadow center contact-form")
+
+  let titleEl = creatEl("h2")
+  titleEl.innerText = "Create Contact"
+
+  let firstNameInputLabelEl = creatEl("label")
+  firstNameInputLabelEl.setAttribute("for", "firstName")
+  firstNameInputLabelEl.innerText= "First Name:"
+  let firstNameInputEl = creatEl("input")
+  firstNameInputEl.setAttribute("id", "firstName")
+  firstNameInputEl.setAttribute("name", "firstName")
+  firstNameInputEl.setAttribute("type", "text")
+  
+  let lastNameInputLabelEl = creatEl("label")
+  lastNameInputLabelEl.setAttribute("for", "last-name-input")
+  lastNameInputLabelEl.innerText ="Last Name:"
+  let lastNameInputEl = creatEl("input")
+  lastNameInputEl.setAttribute("id", "lastName")
+  lastNameInputEl.setAttribute("name", "lastName")
+  lastNameInputEl.setAttribute("type", "text")
+
+  let cityInputLabelEl = creatEl("label")
+  cityInputLabelEl.setAttribute("for", "city")
+  cityInputLabelEl.innerText = "City:"
+  let cityInputEl = creatEl("input")
+  cityInputEl.setAttribute("id", "city")
+  cityInputEl.setAttribute("name", "city")
+  cityInputEl.setAttribute("type", "text")
+
+  let postCodeInputLabelEl = creatEl("label")
+  postCodeInputLabelEl.setAttribute("for", "postCode-input")
+  postCodeInputLabelEl.innerText = "Postcode:"
+  let postCodeInputEl = creatEl("input")
+  postCodeInputEl.setAttribute("id", "postCode")
+  postCodeInputEl.setAttribute("name", "postCode")
+  postCodeInputEl.setAttribute("type", "text")
+
+  let streetInputLabelEl = creatEl("label")
+  streetInputLabelEl.setAttribute("for", "street")
+  streetInputLabelEl.innerText = "Street:"
+  let streetInputEl = creatEl("input")
+  streetInputEl.setAttribute("id", "street")
+  streetInputEl.setAttribute("name", "street")
+  streetInputEl.setAttribute("type", "text")
+
+  let checkboxSectionEl = creatEl("div")
+  checkboxSectionEl.setAttribute("class", "checkboxSection")
+  let checkboxSectionInputEl = creatEl("input")
+  checkboxSectionInputEl.setAttribute("id", "blockCheckbox" )
+  checkboxSectionInputEl.setAttribute("name", "blockCheckbox")
+  checkboxSectionInputEl.setAttribute("type", "checkbox")
+  let checkboxSectionInputLabelEl = creatEl("label")
+  checkboxSectionInputLabelEl.setAttribute("for", "blockCheckbox")
+  checkboxSectionInputLabelEl.innerText = "Block"
+
+  let actionSectionEl = creatEl("div")
+  actionSectionEl.setAttribute("class", "actionsSection")
+  let actionSectionButtonEl = creatEl("button")
+  actionSectionButtonEl.setAttribute("class", "button blue")
+  actionSectionButtonEl.setAttribute("type", "submit")
+  actionSectionButtonEl.innerText= "Create"
+
+  checkboxSectionEl.append(
+    checkboxSectionInputEl,
+    checkboxSectionInputLabelEl
+    )
+  actionSectionEl.append(actionSectionButtonEl)
+  formEl.append(
+    titleEl,
+    firstNameInputLabelEl,
+    firstNameInputEl,
+    lastNameInputLabelEl,
+    lastNameInputEl,
+    cityInputLabelEl,
+    cityInputEl,
+    postCodeInputLabelEl,
+    postCodeInputEl,
+    streetInputLabelEl,
+    streetInputEl,
+    checkboxSectionEl,
+    actionSectionEl
+    )
+    let viewSectionEl = document.querySelector(".view-section")
+    viewSectionEl.append(formEl)
+
+    //Add an event listener for submit function on the form 
+
+    formEl.addEventListener("submit", function(e) {
+      addNewContactToServer(e)
+      formEl.reset()
+    })
+
+
+}
+function addNewContactToServer(event) {
+  event.preventDefault()
+  let formEl = event.target
+  console.log(formEl)
+
+  let newContact = {
+    "firstName": formEl.firstName.value,
+    "lastName": formEl.lastName.value,
+    "blockContact": formEl.blockCheckbox.checked,
+    // document.querySelector("#blockCheckbox")
+    "addressId": ++Object.keys(state.contacts).length
+  }
+
+  let newAddress = {
+    "street": formEl.street.value,
+    "city": formEl.city.value,
+    "postCode": formEl.postCode.value
+  }
+  console.log("newContact:", newContact)
+  console.log("newAddress:", newAddress)
+
+  fetch(`http://localhost:3000/contacts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newContact)
+  })
+  .then(function() {
+    fetch(`http://localhost:3000/addresses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newAddress)
+  })
+  })
+  .then(getContacts)
+}
+
 function listenNewContactButton() {
   const btn = document.querySelector(".new-contact-btn");
 
   btn.addEventListener("click", function () {
     // [TODO] Write Code
+    /**
+     * - A user can create a contact via a form when the "New Contact" button is clicked
+    - the created contact should have:
+        - first name
+        - last name
+        - street
+        - city
+        - post code
+        - an option to block the contact
+    - the created contact should be saved in the database
+    - the created contact should be added to the contacts list
+    1. Get the user input via an interface
+    2. Update the contacts list by using a POST request
+    3. Run getContacts(),  renderContactsList()
+     */
+    renderContactForm()
   });
 }
 
@@ -137,4 +428,4 @@ function main() {
   getContacts();
 }
 
-main();
+main()
