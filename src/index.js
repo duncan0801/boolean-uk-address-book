@@ -129,6 +129,7 @@ function addContact(contactToAdd) {
   
 }
 function addNewContactToServer(event) {
+  //TODO change the update function so that you can update the state and fix the problem in the browser where the updated contact is not shown straight after being updated 
   event.preventDefault()
   let formEl = event.target
   let addressToAdd = {
@@ -151,7 +152,7 @@ function addNewContactToServer(event) {
 
       state.contacts.push(contact)
       state.selectedContact = contact
-      renderContactView()
+      
       renderContactsList()
     })
     // The contact data is not saving the value from the form elements
