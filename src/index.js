@@ -20,14 +20,12 @@ function getContacts() {
     .then(function (data) {
       state.contacts = data;
       
-
       renderContactsList();
     });
 }// Will fetch data from the server then render in the list section
 
 function renderContactsList() {
   let oldListEl = document.querySelector("ul.contacts-list")
-      console.log(oldListEl)
       if(oldListEl) oldListEl.remove()
 
   const listEl = document.createElement("ul");
@@ -94,6 +92,119 @@ function renderContactView() {
 
   viewSection.append(containerEl);
 }
+function addAddress(addressToAdd) {
+  //Takes addressToAdd = {
+  //   "street": formEl.street.value,
+  //   "city": formEl.city.value,
+  //   "postCode": formEl.postCode.value
+  // }
+  return fetch(`http://localhost:3000/addresses`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(addressToAdd)
+  })
+  .then(function(response) {
+    return response.json()
+  })
+}
+function addContact(contactToAdd) {
+  // let contactToAdd = {
+  //   "firstName": formEl.firstName.value,
+  //   "lastName": formEl.lastName.value,
+  //   "blockContact": formEl.blockCheckbox.checked,
+  //   "addressId": null
+  // }
+  return fetch(`http://localhost:3000/contacts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(contactToAdd)
+  })
+  .then(function(response) {
+    return response.json()
+  })
+  
+}
+function addNewContactToServer(event) {
+  event.preventDefault()
+  let formEl = event.target
+  let addressToAdd = {
+    "street": formEl.street.value,
+    "city": formEl.city.value,
+    "postCode": formEl.postCode.value
+  }
+  let contactToAdd = {
+    "firstName": formEl.firstName.value,
+    "lastName": formEl.lastName.value,
+    "blockContact": formEl.blockCheckbox.checked,
+  }
+
+  addAddress(addressToAdd)
+  .then(function(address) {
+    contactToAdd.addressId = address.id
+    addContact(contactToAdd)
+    .then(function(contact) {
+      contact.address = address
+
+      state.contacts.push(contact)
+      state.selectedContact = contact
+      renderContactView()
+      renderContactsList()
+    })
+    // The contact data is not saving the value from the form elements
+})
+}
+
+function contactUpdateToServer (event, contact) {
+  //1. Store the values from the input in the update object
+  event.preventDefault()
+  let formEl = event.target
+  
+  let updateAddress = {
+    "street": formEl.street.value,
+    "city": formEl.city.value,
+    "postCode": formEl.postCode.value
+  }
+  let updateContact = {
+    "firstName": formEl.firstName.value,
+    "lastName": formEl.lastName.value,
+    "blockContact": formEl.blockCheckbox.checked,
+    "addressId": formEl.addressId
+  }
+
+  fetch(`http://localhost:3000/contacts/${contact.id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(updateContact)
+  })
+  .then(function(response) {
+    fetch(`http://localhost:3000/addresses/${contact.addressId}`, {
+      method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(updateAddress)
+    })
+    return response
+  })
+  .then(function(response) {
+    if(response.ok) {
+      alert(`Contact Updated!`)
+      state.selectedContact = contact
+    }
+  })
+  .then(function() {
+    getContacts()
+    renderContactsList()
+    renderContactView()
+  })
+  
+}
 
 /* [END] NO NEED TO EDIT */
 
@@ -140,8 +251,8 @@ function renderContactListItem(contact) {
 }
 
 function renderEditForm(contact) {
-  let oldFormEl = document.querySelector("form")
-  if (oldFormEl) oldFormEl.remove()
+  let oldFormEl = document.querySelector("main")
+  if (oldFormEl) oldFormEl.innerHTML = ""
 
   let formEl = creatEl("form")
   formEl.setAttribute("class", "form-stack light-shadow center contact-form")
@@ -156,7 +267,7 @@ function renderEditForm(contact) {
   firstNameInputEl.setAttribute("id", "firstName")
   firstNameInputEl.setAttribute("name", "firstName")
   firstNameInputEl.setAttribute("type", "text")
-  firstNameInputEl.setAttribute("placeholder", contact.firstName)
+  firstNameInputEl.value = contact.firstName
   
   let lastNameInputLabelEl = creatEl("label")
   lastNameInputLabelEl.setAttribute("for", "last-name-input")
@@ -165,7 +276,7 @@ function renderEditForm(contact) {
   lastNameInputEl.setAttribute("id", "lastName")
   lastNameInputEl.setAttribute("name", "lastName")
   lastNameInputEl.setAttribute("type", "text")
-  lastNameInputEl.setAttribute("placeholder", contact.lastName)
+  lastNameInputEl.value = contact.lastName
 
   let cityInputLabelEl = creatEl("label")
   cityInputLabelEl.setAttribute("for", "city")
@@ -174,7 +285,7 @@ function renderEditForm(contact) {
   cityInputEl.setAttribute("id", "city")
   cityInputEl.setAttribute("name", "city")
   cityInputEl.setAttribute("type", "text")
-  cityInputEl.setAttribute("placeholder", contact.address.city)
+  cityInputEl.value = contact.address.city
 
   let postCodeInputLabelEl = creatEl("label")
   postCodeInputLabelEl.setAttribute("for", "postCode-input")
@@ -183,7 +294,7 @@ function renderEditForm(contact) {
   postCodeInputEl.setAttribute("id", "postCode")
   postCodeInputEl.setAttribute("name", "postCode")
   postCodeInputEl.setAttribute("type", "text")
-  postCodeInputEl.setAttribute("placeholder", contact.address.postCode)
+  postCodeInputEl.value =  contact.address.postCode
 
   let streetInputLabelEl = creatEl("label")
   streetInputLabelEl.setAttribute("for", "street")
@@ -192,7 +303,7 @@ function renderEditForm(contact) {
   streetInputEl.setAttribute("id", "street")
   streetInputEl.setAttribute("name", "street")
   streetInputEl.setAttribute("type", "text")
-  streetInputEl.setAttribute("placeholder", contact.address.street)
+  streetInputEl.value = contact.address.street
 
   let checkboxSectionEl = creatEl("div")
   checkboxSectionEl.setAttribute("class", "checkboxSection")
@@ -205,7 +316,6 @@ function renderEditForm(contact) {
   checkboxSectionInputLabelEl.innerText = "Block"
   if(contact.blockContact) {
     checkboxSectionInputEl.checked = true
-    console.log("ISBLOCKED")
   }
 
   let actionSectionEl = creatEl("div")
@@ -238,29 +348,19 @@ function renderEditForm(contact) {
     let viewSectionEl = document.querySelector(".view-section")
     viewSectionEl.append(formEl)
 
-    formEl.addEventListener("submit", contactUpdateToServer
-    )
+    formEl.addEventListener("submit", function(event) {
+      contactUpdateToServer(event, contact)
+    
+    })
+    
+    
 }
-function contactUpdateToServer (event, contact) {
-  event.preventDefault()
-  let form = event.target
-  let update = {}
 
-  for (element of form) {
-    if(element.value) update.element = element.value
-  }
-  console.log(event)
-  fetch(`http://localhost:3000/contacts/${contact.id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(update)
-  })
-}
 
 
 function renderContactForm() {
+  let oldFormEl = document.querySelector("main")
+  if (oldFormEl) oldFormEl.innerHTML = ""
 
   let formEl = creatEl("form")
   formEl.setAttribute("class", "form-stack light-shadow center contact-form")
@@ -356,45 +456,6 @@ function renderContactForm() {
     })
 
 
-}
-function addNewContactToServer(event) {
-  event.preventDefault()
-  let formEl = event.target
-  console.log(formEl)
-
-  let newContact = {
-    "firstName": formEl.firstName.value,
-    "lastName": formEl.lastName.value,
-    "blockContact": formEl.blockCheckbox.checked,
-    // document.querySelector("#blockCheckbox")
-    "addressId": ++Object.keys(state.contacts).length
-  }
-
-  let newAddress = {
-    "street": formEl.street.value,
-    "city": formEl.city.value,
-    "postCode": formEl.postCode.value
-  }
-  console.log("newContact:", newContact)
-  console.log("newAddress:", newAddress)
-
-  fetch(`http://localhost:3000/contacts`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(newContact)
-  })
-  .then(function() {
-    fetch(`http://localhost:3000/addresses`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(newAddress)
-  })
-  })
-  .then(getContacts)
 }
 
 function listenNewContactButton() {

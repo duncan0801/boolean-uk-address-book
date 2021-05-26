@@ -2,17 +2,41 @@
   "contacts": [
     {
       "id": 1,
-      "firstName": "Boris",
+      "firstName": "Jobby",
       "lastName": "Johnson",
       "blockContact": true,
-      "addressId": 1
+      "addressId": 1,
+      "address": {
+        "street": "10 Downing Street",
+        "city": "London",
+        "postCode": "SW1A 2AB"
+      }
     },
     {
       "id": 2,
       "firstName": "The",
       "lastName": "Queen",
+      "blockContact": true,
+      "addressId": 2,
+      "address": {
+        "street": "Buckingham Palace",
+        "city": "London",
+        "postCode": "SW1A 1AA"
+      }
+    },
+    {
+      "firstName": "Duncan",
+      "lastName": "Magill",
+      "blockContact": true,
+      "addressId": 3,
+      "id": 3
+    },
+    {
+      "firstName": "Feargus",
+      "lastName": "Magill",
       "blockContact": false,
-      "addressId": 2
+      "addressId": 4,
+      "id": 4
     }
   ],
   "addresses": [
@@ -27,6 +51,18 @@
       "street": "Buckingham Palace",
       "city": "London",
       "postCode": "SW1A 1AA"
+    },
+    {
+      "street": "ffff",
+      "city": "Edinburgh",
+      "postCode": "G3 6nd",
+      "id": 3
+    },
+    {
+      "street": "",
+      "city": "Belfast",
+      "postCode": "",
+      "id": 4
     }
   ]
 }
